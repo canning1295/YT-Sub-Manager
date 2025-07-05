@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YT Subscription Manager</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>YT Subscription Manager</h1>
+  <div id="signin">
+    <button id="authorize_button">Authorize</button>
+  </div>
+  <div id="content" style="display:none;">
+    <table id="subs_table">
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Unsubscribe</th>
+          <th>Open Channel</th>
+          <th>DSLW</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
