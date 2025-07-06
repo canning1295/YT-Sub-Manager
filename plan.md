@@ -112,3 +112,13 @@ This plan describes how to design and implement the main page for a single-page 
 
 This plan outlines building a unified single-page application with a collapsible navigation menu, a video player with keyboard shortcuts, subscription management, a search interface, and a recommended videos list. By leveraging the YouTube Data API and the existing subscription manager code, you can create a robust personal YouTube viewer that keeps your favorite channels organized and easily accessible.
 
+## Progress Checklist
+
+- [x] Sidebar navigation with collapse
+- [x] Manage Subs view
+- [x] Search interface
+- [x] Player with keyboard shortcuts and speed overlay
+- [x] Recommended videos table
+- [x] Full-screen toggle button
+- [x] Cache recommended videos in `localStorage`
+
