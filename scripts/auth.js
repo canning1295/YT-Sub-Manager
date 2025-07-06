@@ -22,7 +22,6 @@ export function gisLoaded(onAuthorized) {
       if (onAuthorized) onAuthorized();
     }
   });
-  authorize();
 }
 
 export function authorize(onAuthorized) {
