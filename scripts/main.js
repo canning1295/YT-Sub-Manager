@@ -1,4 +1,4 @@
-import { gapiLoaded, gisLoaded } from './auth.js';
+import { gapiLoaded, gisLoaded, authorize } from './auth.js';
 import { loadSubscriptions, searchVideos, loadSubscriptionVideos, loadWatchHistory } from './api.js';
 import { loadVideo, initPlayerShortcuts } from './player.js';
 
@@ -28,17 +28,20 @@ initPlayerShortcuts();
 window.addEventListener('load', () => {
   const script = document.createElement('script');
   script.src = 'https://accounts.google.com/gsi/client';
-  script.onload = () =>
-    gisLoaded(() => {
-      loadWatchHistory().then(() => {
-        loadSubscriptions();
-        loadSubscriptionVideos();
-        document.getElementById('nav_subscriptions').click();
-      });
-    });
+  script.onload = () => gisLoaded();
   document.body.appendChild(script);
   gapiLoaded();
 });
+
+document.getElementById('authorize_button').onclick = () => {
+  authorize(() => {
+    loadWatchHistory().then(() => {
+      loadSubscriptions();
+      loadSubscriptionVideos();
+      document.getElementById('nav_subscriptions').click();
+    });
+  });
+};
 
 // expose loadVideo for inline onclick handlers
 window.loadVideo = loadVideo;

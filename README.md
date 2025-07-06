@@ -6,7 +6,7 @@ This project provides a simple web page that allows you to manage your YouTube s
 
 1. Create an OAuth 2.0 Client ID for a Web application in the [Google Developer Console](https://console.developers.google.com/). Add your page's URL to the authorized origins.
 2. Enable the **YouTube Data API v3** for your project and generate an API key.
-3. Replace `YOUR_CLIENT_ID` and `YOUR_API_KEY` in `script.js` with the credentials you created.
+3. Replace `YOUR_CLIENT_ID` and `YOUR_API_KEY` in `config.js` with the credentials you created.
 4. Open `index.html` in a browser.
 
 ## Usage
