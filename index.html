@@ -3,8 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YT Subscription Manager</title>
+  <title>Personal YouTube Viewer</title>
   <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+    #sidebar {
+      background: #333;
+      color: #fff;
+      width: 200px;
+      transition: width 0.3s;
+      overflow: hidden;
+    }
+    #sidebar.collapsed {
+      width: 60px;
+    }
+    #sidebar button {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+    #sidebar button:hover {
+      background: #444;
+    }
+    #toggleSidebar {
+      font-size: 24px;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+    }
+    #main {
+      flex: 1;
+      padding: 20px;
+    }
+    .view {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
     table {
       border-collapse: collapse;
       width: 100%;
@@ -16,26 +61,79 @@
     th {
       background-color: #f2f2f2;
     }
+    #speedOverlay {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>YT Subscription Manager</h1>
-  <div id="signin">
-    <button id="authorize_button">Authorize</button>
-  </div>
-  <div id="content" style="display:none;">
-    <table id="subs_table">
-      <thead>
-        <tr>
-          <th>Channel</th>
-          <th>Unsubscribe</th>
-          <th>Open Channel</th>
-          <th>DSLW</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+  <nav id="sidebar">
+    <div id="toggleSidebar">☰</div>
+    <button id="nav_player">Player</button>
+    <button id="nav_subs">Manage Subs</button>
+    <button id="nav_search">Search</button>
+    <button id="nav_recommended">Recommended</button>
+  </nav>
+  <div id="main">
+    <div id="signin">
+      <button id="authorize_button">Authorize</button>
+    </div>
+    <div id="player_view" class="view active">
+      <div id="player"></div>
+      <div id="speedOverlay"></div>
+    </div>
+    <div id="subs_view" class="view">
+      <table id="subs_table">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Unsubscribe</th>
+            <th>Open Channel</th>
+            <th>DSLW</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="search_view" class="view">
+      <input type="text" id="search_query" placeholder="Search YouTube">
+      <button id="search_button">Search</button>
+      <table id="search_results">
+        <thead>
+          <tr>
+            <th>Thumbnail</th>
+            <th>Title</th>
+            <th>Channel</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="recommended_view" class="view">
+      <button id="load_recommended">Load Recommended</button>
+      <table id="recommended_table">
+        <thead>
+          <tr>
+            <th>Channel Name</th>
+            <th>Thumbnail</th>
+            <th>Video Name</th>
+            <th>Video Date</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Dislikes</th>
+            <th>Total Comments</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="script.js"></script>
