@@ -246,18 +246,19 @@ async function loadRecommended() {
     localStorage.setItem('recommended_cache', JSON.stringify({timestamp: Date.now(), videos}));
   }
 
-  const ids = videos.map(v => v.videoId).join(',');
-  if (ids) {
+  const ids = videos.map(v => v.videoId);
+  const statsMap = {};
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50).join(',');
     const statsResp = await gapi.client.youtube.videos.list({
       part: 'statistics',
-      id: ids,
+      id: chunk,
     });
-    const statsMap = {};
     statsResp.result.items.forEach(s => {
       statsMap[s.id] = s.statistics;
     });
-    videos.forEach(v => v.stats = statsMap[v.videoId] || {});
   }
+  videos.forEach(v => v.stats = statsMap[v.videoId] || {});
 
   videos.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
