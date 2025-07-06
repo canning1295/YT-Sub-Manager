@@ -126,12 +126,12 @@ This plan outlines building a unified single-page application with a collapsible
 
 The following tasks describe how Codex should update the application to satisfy the new feature requests.
 
-1. **Refactor Project Structure** [ ]
+1. **Refactor Project Structure** [x]
    - Break `script.js` into logical modules (authentication, API calls, player controls, UI handlers).
    - Move styling into dedicated CSS files and organize them in a `styles/` directory. Consider using a CSS framework (e.g., Tailwind or Bootstrap) compiled with a build tool.
    - Introduce `npm` with a minimal bundler (like Vite or Webpack) for development and hot reload.
 
-2. **UI/UX Enhancements** [ ]
+2. **UI/UX Enhancements** [x]
    - Apply modern design practices using the chosen CSS framework to improve layout and responsiveness.
    - Keep the sidebar collapse/expand functionality but ensure that when collapsed only a small icon is visible.
 
@@ -143,7 +143,7 @@ The following tasks describe how Codex should update the application to satisfy 
    - Fetch videos from each subscribed channel in 3‑day windows starting from today.
    - Display a **Show more** button at the bottom that loads the next three days of results and appends them to the table.
 
-5. **Authentication Flow** [ ]
+5. **Authentication Flow** [x]
    - Remove the manual **Authorize** button.
    - Detect when no OAuth token is present or when a request fails due to authentication and automatically initiate the sign‑in flow.
 
