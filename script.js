@@ -43,6 +43,7 @@ document.getElementById('toggleSidebar').onclick = () => document.getElementById
 
 document.getElementById('search_button').onclick = searchVideos;
 document.getElementById('load_recommended').onclick = loadRecommended;
+document.getElementById('fullscreen_button').onclick = toggleFullScreen;
 
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -93,6 +94,19 @@ function changeSpeed(delta) {
   overlay.textContent = currentSpeed.toFixed(2) + 'x';
   overlay.style.display = 'block';
   setTimeout(() => overlay.style.display = 'none', 1000);
+}
+
+function toggleFullScreen() {
+  const playerDiv = document.getElementById('player');
+  if (!document.fullscreenElement) {
+    if (playerDiv.requestFullscreen) playerDiv.requestFullscreen();
+    else if (playerDiv.webkitRequestFullscreen) playerDiv.webkitRequestFullscreen();
+    else if (playerDiv.mozRequestFullScreen) playerDiv.mozRequestFullScreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+  }
 }
 
 async function loadSubscriptions() {
@@ -193,37 +207,44 @@ async function searchVideos() {
 async function loadRecommended() {
   const tableBody = document.querySelector('#recommended_table tbody');
   tableBody.innerHTML = '';
-  const videos = [];
-  let nextPageToken = null;
-  do {
-    const subs = await gapi.client.youtube.subscriptions.list({
-      part: 'snippet',
-      mine: true,
-      maxResults: 50,
-      pageToken: nextPageToken,
-    });
-    for (const item of subs.result.items) {
-      const channelId = item.snippet.resourceId.channelId;
-      const res = await gapi.client.youtube.search.list({
+  const cache = JSON.parse(localStorage.getItem('recommended_cache') || 'null');
+  let videos;
+  if (cache && Date.now() - cache.timestamp < 60 * 60 * 1000) {
+    videos = cache.videos;
+  } else {
+    videos = [];
+    let nextPageToken = null;
+    do {
+      const subs = await gapi.client.youtube.subscriptions.list({
         part: 'snippet',
-        channelId,
-        order: 'date',
-        maxResults: 1,
-        type: 'video',
+        mine: true,
+        maxResults: 50,
+        pageToken: nextPageToken,
       });
-      const vidItem = res.result.items[0];
-      if (vidItem) {
-        videos.push({
-          channelTitle: item.snippet.title,
-          videoId: vidItem.id.videoId,
-          title: vidItem.snippet.title,
-          publishedAt: vidItem.snippet.publishedAt,
-          thumb: vidItem.snippet.thumbnails.default.url,
+      for (const item of subs.result.items) {
+        const channelId = item.snippet.resourceId.channelId;
+        const res = await gapi.client.youtube.search.list({
+          part: 'snippet',
+          channelId,
+          order: 'date',
+          maxResults: 3,
+          type: 'video',
+        });
+        res.result.items.forEach(vidItem => {
+          videos.push({
+            channelTitle: item.snippet.title,
+            videoId: vidItem.id.videoId,
+            title: vidItem.snippet.title,
+            publishedAt: vidItem.snippet.publishedAt,
+            thumb: vidItem.snippet.thumbnails.default.url,
+          });
         });
       }
-    }
-    nextPageToken = subs.result.nextPageToken;
-  } while (nextPageToken);
+      nextPageToken = subs.result.nextPageToken;
+    } while (nextPageToken);
+
+    localStorage.setItem('recommended_cache', JSON.stringify({timestamp: Date.now(), videos}));
+  }
 
   const ids = videos.map(v => v.videoId).join(',');
   if (ids) {
