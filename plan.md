@@ -122,3 +122,44 @@ This plan outlines building a unified single-page application with a collapsible
 - [x] Full-screen toggle button
 - [x] Cache recommended videos in `localStorage`
 
+## Plan for Next Improvements
+
+The following tasks describe how Codex should update the application to satisfy the new feature requests.
+
+1. **Refactor Project Structure**
+   - Break `script.js` into logical modules (authentication, API calls, player controls, UI handlers).
+   - Move styling into dedicated CSS files and organize them in a `styles/` directory. Consider using a CSS framework (e.g., Tailwind or Bootstrap) compiled with a build tool.
+   - Introduce `npm` with a minimal bundler (like Vite or Webpack) for development and hot reload.
+
+2. **UI/UX Enhancements**
+   - Apply modern design practices using the chosen CSS framework to improve layout and responsiveness.
+   - Keep the sidebar collapse/expand functionality but ensure that when collapsed only a small icon is visible.
+
+3. **Default View and Navigation Update**
+   - Rename the "Recommended" page to **Subscriptions** and list it first in the sidebar.
+   - When the app starts, automatically show this page instead of the player.
+
+4. **Incremental Video Loading**
+   - Fetch videos from each subscribed channel in 3‑day windows starting from today.
+   - Display a **Show more** button at the bottom that loads the next three days of results and appends them to the table.
+
+5. **Authentication Flow**
+   - Remove the manual **Authorize** button.
+   - Detect when no OAuth token is present or when a request fails due to authentication and automatically initiate the sign‑in flow.
+
+6. **Player Updates**
+   - Remove the Full Screen button and associated logic.
+   - Allow the player element to grow vertically so the video uses the available height.
+   - Update keyboard shortcuts:
+     - Reverse `A` and `S` behaviors ("A" decreases speed, "S" increases).
+     - Arrow keys: Up/Down adjust speed ±0.25x with overlay, Left rewinds 5s, Right forwards 5s.
+
+7. **Subscriptions Table Changes**
+   - Replace the Dislikes column with a Transcript column.
+   - Add a button that attempts to download the video's transcript via the YouTube Captions API.
+
+8. **Testing and Validation**
+   - After restructuring, ensure existing features still work: managing subscriptions, search, and playback.
+   - Add checks for incremental loading and new keyboard shortcuts.
+
+These steps should guide Codex in implementing the requested improvements while keeping the codebase organized and maintainable.
