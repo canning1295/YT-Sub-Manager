@@ -5,6 +5,10 @@ let accessToken;
 let player;
 let currentSpeed = 1;
 const watchHistoryMap = {};
+let subsWindowEnd = new Date();
+let subsWindowStart = new Date();
+subsWindowStart.setDate(subsWindowEnd.getDate() - 3);
+let subsVideos = [];
 
 function gapiLoaded() {
   gapi.load('client', initializeGapiClient);
@@ -23,7 +27,8 @@ function gisLoaded() {
       document.getElementById('signin').style.display = 'none';
       loadWatchHistory().then(() => {
         loadSubscriptions();
-        document.getElementById('nav_subs').click();
+        loadSubscriptionVideos();
+        document.getElementById('nav_subscriptions').click();
       });
     },
   });
@@ -38,12 +43,12 @@ document.getElementById('authorize_button').onclick = authorize;
 document.getElementById('nav_player').onclick = () => showView('player_view');
 document.getElementById('nav_subs').onclick = () => { showView('subs_view'); loadSubscriptions(); };
 document.getElementById('nav_search').onclick = () => showView('search_view');
-document.getElementById('nav_recommended').onclick = () => { showView('recommended_view'); };
+document.getElementById('nav_subscriptions').onclick = () => { showView('subscriptions_view'); };
 document.getElementById('toggleSidebar').onclick = () => document.getElementById('sidebar').classList.toggle('collapsed');
 
 document.getElementById('search_button').onclick = searchVideos;
-document.getElementById('load_recommended').onclick = loadRecommended;
-document.getElementById('fullscreen_button').onclick = toggleFullScreen;
+document.getElementById('load_subscriptions').onclick = loadSubscriptionVideos;
+document.getElementById('show_more_subs').onclick = () => loadSubscriptionVideos(true);
 
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -81,9 +86,17 @@ document.addEventListener('keydown', (e) => {
     if (state === 1) player.pauseVideo();
     else player.playVideo();
   } else if (e.key.toLowerCase() === 'a') {
-    changeSpeed(0.25);
-  } else if (e.key.toLowerCase() === 's') {
     changeSpeed(-0.25);
+  } else if (e.key.toLowerCase() === 's') {
+    changeSpeed(0.25);
+  } else if (e.key === 'ArrowUp') {
+    changeSpeed(0.25);
+  } else if (e.key === 'ArrowDown') {
+    changeSpeed(-0.25);
+  } else if (e.key === 'ArrowLeft') {
+    player.seekTo(Math.max(0, player.getCurrentTime() - 5), true);
+  } else if (e.key === 'ArrowRight') {
+    player.seekTo(player.getCurrentTime() + 5, true);
   }
 });
 
@@ -96,18 +109,6 @@ function changeSpeed(delta) {
   setTimeout(() => overlay.style.display = 'none', 1000);
 }
 
-function toggleFullScreen() {
-  const playerDiv = document.getElementById('player');
-  if (!document.fullscreenElement) {
-    if (playerDiv.requestFullscreen) playerDiv.requestFullscreen();
-    else if (playerDiv.webkitRequestFullscreen) playerDiv.webkitRequestFullscreen();
-    else if (playerDiv.mozRequestFullScreen) playerDiv.mozRequestFullScreen();
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-  }
-}
 
 async function loadSubscriptions() {
   const tableBody = document.querySelector('#subs_table tbody');
@@ -204,49 +205,52 @@ async function searchVideos() {
   });
 }
 
-async function loadRecommended() {
-  const tableBody = document.querySelector('#recommended_table tbody');
-  tableBody.innerHTML = '';
-  const cache = JSON.parse(localStorage.getItem('recommended_cache') || 'null');
-  let videos;
-  if (cache && Date.now() - cache.timestamp < 60 * 60 * 1000) {
-    videos = cache.videos;
-  } else {
-    videos = [];
-    let nextPageToken = null;
-    do {
-      const subs = await gapi.client.youtube.subscriptions.list({
-        part: 'snippet',
-        mine: true,
-        maxResults: 50,
-        pageToken: nextPageToken,
-      });
-      for (const item of subs.result.items) {
-        const channelId = item.snippet.resourceId.channelId;
-        const res = await gapi.client.youtube.search.list({
-          part: 'snippet',
-          channelId,
-          order: 'date',
-          maxResults: 3,
-          type: 'video',
-        });
-        res.result.items.forEach(vidItem => {
-          videos.push({
-            channelTitle: item.snippet.title,
-            videoId: vidItem.id.videoId,
-            title: vidItem.snippet.title,
-            publishedAt: vidItem.snippet.publishedAt,
-            thumb: vidItem.snippet.thumbnails.default.url,
-          });
-        });
-      }
-      nextPageToken = subs.result.nextPageToken;
-    } while (nextPageToken);
-
-    localStorage.setItem('recommended_cache', JSON.stringify({timestamp: Date.now(), videos}));
+async function loadSubscriptionVideos(append = false) {
+  const tableBody = document.querySelector('#subscriptions_table tbody');
+  if (!append) {
+    subsVideos = [];
+    tableBody.innerHTML = '';
+    subsWindowEnd = new Date();
+    subsWindowStart = new Date();
+    subsWindowStart.setDate(subsWindowEnd.getDate() - 3);
   }
 
-  const ids = videos.map(v => v.videoId);
+  const windowVideos = [];
+  let nextPageToken = null;
+  do {
+    const subs = await gapi.client.youtube.subscriptions.list({
+      part: 'snippet',
+      mine: true,
+      maxResults: 50,
+      pageToken: nextPageToken,
+    });
+    for (const item of subs.result.items) {
+      const channelId = item.snippet.resourceId.channelId;
+      const res = await gapi.client.youtube.search.list({
+        part: 'snippet',
+        channelId,
+        order: 'date',
+        type: 'video',
+        publishedAfter: subsWindowStart.toISOString(),
+        publishedBefore: subsWindowEnd.toISOString(),
+        maxResults: 50
+      });
+      res.result.items.forEach(vidItem => {
+        windowVideos.push({
+          channelTitle: item.snippet.title,
+          videoId: vidItem.id.videoId,
+          title: vidItem.snippet.title,
+          publishedAt: vidItem.snippet.publishedAt,
+          thumb: vidItem.snippet.thumbnails.default.url,
+        });
+      });
+    }
+    nextPageToken = subs.result.nextPageToken;
+  } while (nextPageToken);
+
+  subsVideos.push(...windowVideos);
+
+  const ids = windowVideos.map(v => v.videoId);
   const statsMap = {};
   for (let i = 0; i < ids.length; i += 50) {
     const chunk = ids.slice(i, i + 50).join(',');
@@ -258,11 +262,10 @@ async function loadRecommended() {
       statsMap[s.id] = s.statistics;
     });
   }
-  videos.forEach(v => v.stats = statsMap[v.videoId] || {});
+  windowVideos.forEach(v => v.stats = statsMap[v.videoId] || {});
+  subsVideos.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
-  videos.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-
-  videos.forEach(v => {
+  windowVideos.forEach(v => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${v.channelTitle}</td>
@@ -271,12 +274,36 @@ async function loadRecommended() {
       <td>${new Date(v.publishedAt).toLocaleDateString()}</td>
       <td>${v.stats.viewCount || ''}</td>
       <td>${v.stats.likeCount || ''}</td>
-      <td>${v.stats.dislikeCount || ''}</td>
+      <td><button onclick="event.stopPropagation(); getTranscript('${v.videoId}')">Get Transcript</button></td>
       <td>${v.stats.commentCount || ''}</td>
     `;
     tr.onclick = () => loadVideo(v.videoId);
     tableBody.appendChild(tr);
   });
+
+  subsWindowEnd = new Date(subsWindowStart);
+  subsWindowStart.setDate(subsWindowEnd.getDate() - 3);
+
+  localStorage.setItem('subscriptions_cache', JSON.stringify({timestamp: Date.now(), videos: subsVideos}));
+}
+
+async function getTranscript(videoId) {
+  try {
+    const listResp = await gapi.client.youtube.captions.list({
+      part: 'id',
+      videoId
+    });
+    if (listResp.result.items && listResp.result.items.length) {
+      const captionId = listResp.result.items[0].id;
+      const url = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=srt&alt=media&access_token=${accessToken}`;
+      window.open(url, '_blank');
+    } else {
+      alert('No transcript available');
+    }
+  } catch (err) {
+    console.error('Transcript error', err);
+    alert('Failed to fetch transcript');
+  }
 }
 
 window.addEventListener('load', () => {

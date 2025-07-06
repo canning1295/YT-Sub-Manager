@@ -71,30 +71,27 @@
       border-radius: 4px;
       display: none;
     }
-    #fullscreen_button {
-      margin-top: 10px;
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
+    #player {
+      width: 100%;
+      height: 70vh;
     }
   </style>
 </head>
 <body>
   <nav id="sidebar">
     <div id="toggleSidebar">☰</div>
+    <button id="nav_subscriptions">Subscriptions</button>
     <button id="nav_player">Player</button>
     <button id="nav_subs">Manage Subs</button>
     <button id="nav_search">Search</button>
-    <button id="nav_recommended">Recommended</button>
   </nav>
   <div id="main">
     <div id="signin">
       <button id="authorize_button">Authorize</button>
     </div>
-    <div id="player_view" class="view active">
+    <div id="player_view" class="view">
       <div id="player"></div>
       <div id="speedOverlay"></div>
-      <button id="fullscreen_button">Full Screen</button>
     </div>
     <div id="subs_view" class="view">
       <table id="subs_table">
@@ -123,9 +120,9 @@
         <tbody></tbody>
       </table>
     </div>
-    <div id="recommended_view" class="view">
-      <button id="load_recommended">Load Recommended</button>
-      <table id="recommended_table">
+    <div id="subscriptions_view" class="view active">
+      <button id="load_subscriptions">Load Subscriptions</button>
+      <table id="subscriptions_table">
         <thead>
           <tr>
             <th>Channel Name</th>
@@ -134,12 +131,13 @@
             <th>Video Date</th>
             <th>Views</th>
             <th>Likes</th>
-            <th>Dislikes</th>
+            <th>Transcript</th>
             <th>Total Comments</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+      <button id="show_more_subs">Show more</button>
     </div>
   </div>
   <script src="https://apis.google.com/js/api.js"></script>
